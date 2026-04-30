@@ -3,39 +3,59 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[brazilian]{babel}
-\usepackage[top=2cm,bottom=2cm,left=2cm,right=2cm]{geometry}
+\usepackage[top=2.2cm,bottom=2.2cm,left=2.2cm,right=2.2cm]{geometry}
+\usepackage{microtype}
 \usepackage{enumitem}
 \usepackage{xcolor}
-\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{array}
 
-\definecolor{mainblue}{RGB}{0,74,128}
+\definecolor{accent}{RGB}{0,74,128}
+\definecolor{textgray}{RGB}{35,42,49}
+\definecolor{muted}{RGB}{98,108,118}
+\definecolor{linegray}{RGB}{218,224,230}
 
-\hypersetup{
-  colorlinks=true,
-  linkcolor=mainblue,
-  urlcolor=mainblue
+\color{textgray}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlist[itemize]{leftmargin=1.25em,itemsep=2pt,topsep=3pt}
+
+\newcommand{\sectiontitle}[1]{%
+  \vspace{1.2em}
+  {\Large\bfseries\color{accent}#1}\par
+  \vspace{-0.35em}
+  {\color{linegray}\rule{\linewidth}{0.5pt}}\par
+  \vspace{0.25em}
 }
 
-\setlist[itemize]{leftmargin=*, itemsep=2pt, topsep=3pt}
+\newcommand{\slide}[2]{%
+  \vspace{0.9em}
+  {\small\bfseries\color{muted}SLIDE #1}\par
+  {\large\bfseries #2}\par
+  \vspace{-0.3em}
+}
 
-\title{\textbf{Plano da Apresentação: Ciclo Hamiltoniano}}
-\author{}
-\date{}
+\newcommand{\question}[1]{%
+  \begin{quote}
+    \itshape #1
+  \end{quote}
+}
 
 \begin{document}
 
-\maketitle
-\vspace{-2em}
+\begin{center}
+  {\LARGE\bfseries Ciclo Hamiltoniano}\\[3pt]
+  {\large Plano da apresentação}\\[8pt]
+  {\color{linegray}\rule{0.78\linewidth}{0.5pt}}
+\end{center}
 
-\section{Ideia central}
+\sectiontitle{Ideia central}
 
-O Ciclo Hamiltoniano é um problema de grafos simples de entender:
+O Ciclo Hamiltoniano é um problema de grafos que parece simples de entender:
 
-\begin{quote}
-Dá para sair de um vértice, passar por todos os vértices exatamente uma vez e voltar para o início?
-\end{quote}
+\question{Dá para sair de um vértice, passar por todos os vértices exatamente uma vez e voltar para o início?}
 
-O ponto central da apresentação é mostrar o contraste entre três ideias:
+A apresentação deve explorar esse contraste:
 
 \begin{itemize}
   \item explicar o problema é fácil;
@@ -43,147 +63,114 @@ O ponto central da apresentação é mostrar o contraste entre três ideias:
   \item descobrir se existe uma resposta, em geral, pode ser muito difícil.
 \end{itemize}
 
-\section{Objetivos para a turma}
+\textbf{Frase-guia:} simples de explicar, fácil de verificar e difícil de resolver em geral.
 
-Ao final da apresentação, a turma deve entender:
-
-\begin{itemize}
-  \item o que é um caminho hamiltoniano;
-  \item o que é um ciclo hamiltoniano;
-  \item qual é a diferença entre ciclo hamiltoniano e ciclo euleriano;
-  \item como escrever o problema como um problema de decisão;
-  \item por que uma solução candidata é fácil de verificar;
-  \item por que o problema está em NP;
-  \item por que ele é um exemplo clássico de problema NP-completo;
-  \item que existem algoritmos exatos, mas eles crescem muito rápido;
-  \item que, na prática, muitas abordagens usam busca, poda, programação dinâmica ou heurísticas.
-\end{itemize}
-
-\section{Organização sugerida dos slides}
-
-\subsection{Slide 1 -- Título e pergunta central}
-
-Abrir com o título \textbf{Ciclo Hamiltoniano} e uma pergunta simples:
-
-\begin{quote}
-Existe um passeio fechado que visita todos os vértices uma única vez?
-\end{quote}
-
-Esse começo coloca a turma direto no problema antes de entrar nas definições. Se já houver um grafo pequeno na tela, a pergunta fica concreta desde o primeiro momento.
-
-\subsection{Slide 2 -- Definições básicas}
-
-Alinhar o vocabulário mínimo:
+\sectiontitle{O que a turma precisa levar}
 
 \begin{itemize}
-  \item grafo;
-  \item vértice;
-  \item aresta;
-  \item caminho;
-  \item ciclo;
-  \item caminho hamiltoniano;
-  \item ciclo hamiltoniano.
+  \item O que são caminho hamiltoniano e ciclo hamiltoniano.
+  \item A diferença entre ciclo hamiltoniano e ciclo euleriano.
+  \item Como formular o tema como problema de decisão.
+  \item Por que uma solução candidata é fácil de verificar.
+  \item Por que o problema está em NP.
+  \item Por que ele é um exemplo clássico de problema NP-completo.
+  \item Por que algoritmos exatos crescem rápido demais para grafos grandes.
+  \item Como busca, poda, programação dinâmica, SAT/ILP e heurísticas aparecem na prática.
 \end{itemize}
 
-Não vale gastar muito tempo aqui. O objetivo é apenas garantir que todos consigam acompanhar os exemplos seguintes.
+\sectiontitle{Roteiro dos slides}
 
-\subsection{Slide 3 -- Exemplo com ciclo hamiltoniano}
+\slide{1}{Título e pergunta central}
 
-Mostrar um grafo pequeno em que o ciclo existe e escrever a ordem dos vértices. O ponto é deixar claro que não basta o desenho parecer circular: o ciclo precisa visitar todos os vértices uma única vez e voltar ao início.
+Abrir com o título \textbf{Ciclo Hamiltoniano} e a pergunta:
 
-Esse slide é importante porque a definição fica mais fácil quando a turma vê uma sequência concreta.
+\question{Existe um passeio fechado que visita todos os vértices uma única vez?}
 
-\subsection{Slide 4 -- Exemplo sem ciclo hamiltoniano}
+Um grafo pequeno na tela ajuda a transformar a pergunta em algo concreto antes das definições.
 
-Trazer um grafo pequeno que não tem ciclo, de preferência com um vértice de grau 1 ou alguma estrutura que force repetição.
+\slide{2}{Definições básicas}
 
-A ideia é mostrar que a ausência do ciclo não é uma questão de desenhar melhor o caminho. Em alguns casos, a própria estrutura do grafo impede a solução.
+Alinhar apenas o vocabulário necessário: grafo, vértice, aresta, caminho, ciclo, caminho hamiltoniano e ciclo hamiltoniano.
 
-\subsection{Slide 5 -- Hamiltoniano vs. Euleriano}
+O objetivo é preparar os exemplos seguintes, sem transformar o início da apresentação em uma lista longa de conceitos.
 
-Usar a comparação com Euler para evitar uma confusão comum:
+\slide{3}{Exemplo com ciclo hamiltoniano}
 
-\begin{itemize}
-  \item o ciclo hamiltoniano se preocupa com vértices;
-  \item o ciclo euleriano se preocupa com arestas.
-\end{itemize}
+Mostrar um grafo pequeno em que o ciclo existe e escrever a sequência dos vértices. O ponto é reforçar que não basta o desenho parecer circular: o ciclo precisa visitar todos os vértices uma única vez e retornar ao começo.
 
-A tabela pode ser simples e visual. O objetivo é deixar claro que os dois problemas parecem parecidos no nome, mas pedem coisas diferentes.
+\slide{4}{Exemplo sem ciclo hamiltoniano}
 
-\subsection{Slide 6 -- Problema de decisão}
+Usar um grafo pequeno sem ciclo, de preferência com um vértice de grau 1 ou outra estrutura que force repetição.
+
+A mensagem principal é que a ausência do ciclo pode vir da própria estrutura do grafo, não de uma escolha ruim de caminho.
+
+\slide{5}{Hamiltoniano vs. Euleriano}
+
+Usar a comparação com Euler para evitar uma confusão comum.
+
+\begin{center}
+\begin{tabular}{@{}p{0.26\linewidth}p{0.29\linewidth}p{0.29\linewidth}@{}}
+\toprule
+\textbf{Aspecto} & \textbf{Euleriano} & \textbf{Hamiltoniano} \\
+\midrule
+Foco & Arestas & Vértices \\
+Repetição & Pode repetir vértices & Não repete vértices \\
+Critério clássico & Graus pares & Não há critério simples geral \\
+Dificuldade & Polinomial & NP-completo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\slide{6}{Problema de decisão}
 
 Apresentar a pergunta formal:
 
-\begin{quote}
-Dado um grafo $G$, $G$ possui um ciclo hamiltoniano?
-\end{quote}
+\question{Dado um grafo $G$, $G$ possui um ciclo hamiltoniano?}
 
-Depois, mostrar três formas de olhar para o tema:
+Depois separar três formas de olhar para o tema:
 
 \begin{itemize}
-  \item decidir se existe;
-  \item encontrar um ciclo quando existe;
-  \item otimizar algum custo, como no Problema do Caixeiro Viajante.
+  \item \textbf{decisão:} dizer se existe;
+  \item \textbf{busca:} encontrar um ciclo quando existe;
+  \item \textbf{otimização:} minimizar custo, como no Problema do Caixeiro Viajante.
 \end{itemize}
 
-Esse slide faz a ponte entre o desenho do grafo e a linguagem de complexidade.
-
-\subsection{Slide 7 -- Verificar é fácil}
+\slide{7}{Verificar é fácil}
 
 Mostrar uma sequência candidata, por exemplo:
 
-\begin{quote}
-\texttt{A, C, D, B, E, A}
-\end{quote}
+\question{\texttt{A, C, D, B, E, A}}
 
-Explicar como conferir:
+A verificação checa três pontos: todos os vértices aparecem uma vez, cada par consecutivo forma uma aresta e o último vértice volta ao primeiro.
 
-\begin{itemize}
-  \item todos os vértices aparecem uma vez;
-  \item cada par consecutivo é uma aresta;
-  \item o último vértice volta ao primeiro.
-\end{itemize}
+Esse é o momento de separar duas tarefas: verificar uma resposta pronta é rápido; descobrir a resposta pode não ser.
 
-O ponto é separar duas tarefas diferentes: verificar uma resposta pronta é rápido; descobrir a resposta pode não ser.
+\slide{8}{Encontrar é difícil}
 
-\subsection{Slide 8 -- Encontrar é difícil}
+Explicar a explosão combinatória. Com muitos vértices, o número de ordens possíveis cresce rápido demais para testar tudo.
 
-Usar este slide para falar da explosão combinatória. Com muitos vértices, o número de ordens possíveis cresce muito rápido, então testar tudo deixa de ser viável.
+Vale citar que existem algoritmos melhores que força bruta, como programação dinâmica no estilo Held-Karp, mas eles ainda têm custo exponencial.
 
-Vale citar que existem algoritmos melhores que força bruta, como programação dinâmica no estilo Held-Karp, mas que eles ainda têm custo exponencial.
+\slide{9}{NP e NP-completo sem pesar}
 
-\subsection{Slide 9 -- NP e NP-completo sem pesar}
-
-Explicar sem entrar em prova longa:
+Explicar sem entrar em uma prova longa:
 
 \begin{itemize}
-  \item o problema está em NP porque dá para conferir um certificado em tempo polinomial;
-  \item o problema é NP-completo porque representa uma dificuldade central dentro de NP.
+  \item está em NP porque um certificado pode ser conferido em tempo polinomial;
+  \item é NP-completo porque representa uma dificuldade central dentro de NP.
 \end{itemize}
 
-A ideia não é demonstrar a redução, mas deixar a turma entender o peso da afirmação: se houvesse um algoritmo polinomial geral para Ciclo Hamiltoniano, isso mexeria com a questão $P$ versus $NP$.
+A ideia é deixar claro o peso da afirmação: um algoritmo polinomial geral para Ciclo Hamiltoniano teria impacto direto na questão $P$ versus $NP$.
 
-\subsection{Slide 10 -- Quando dá para garantir ou tentar resolver}
+\slide{10}{Quando dá para garantir ou tentar resolver}
 
 Mostrar que ``difícil em geral'' não significa ``impossível sempre''.
 
-Existem casos especiais e condições suficientes, como o Teorema de Dirac, que garantem ciclo hamiltoniano em grafos bem conectados.
+Existem casos especiais e condições suficientes, como o Teorema de Dirac, que garantem ciclo hamiltoniano em grafos bem conectados. Na prática, também aparecem busca com poda, programação dinâmica, SAT, programação linear inteira e heurísticas.
 
-Na prática, também aparecem abordagens como:
+\slide{11}{Aplicações e conexões}
 
-\begin{itemize}
-  \item busca com poda;
-  \item programação dinâmica;
-  \item modelagem como SAT;
-  \item programação linear inteira;
-  \item heurísticas.
-\end{itemize}
-
-Esse slide ajuda a não deixar a apresentação pessimista demais.
-
-\subsection{Slide 11 -- Aplicações e conexões}
-
-Falar de conexões sem vender o problema como uma solução direta para tudo. Boas pontes:
+Falar de conexões sem vender o problema como solução direta para tudo. Boas pontes:
 
 \begin{itemize}
   \item roteamento;
@@ -193,40 +180,34 @@ Falar de conexões sem vender o problema como uma solução direta para tudo. Bo
   \item modelos de visita sem repetição em redes.
 \end{itemize}
 
-O valor deste slide é mostrar que o problema aparece tanto como ferramenta de modelagem quanto como exemplo clássico de limite algorítmico.
+O valor do slide é mostrar o problema como ferramenta de modelagem e como exemplo clássico de limite algorítmico.
 
-\subsection{Slide 12 -- Fechamento}
+\slide{12}{Fechamento}
 
-Fechar voltando à frase-guia:
+Voltar à frase-guia:
 
-\begin{quote}
-Simples de explicar, fácil de verificar e difícil de resolver em geral.
-\end{quote}
+\question{Simples de explicar, fácil de verificar e difícil de resolver em geral.}
 
-Uma boa pergunta final é:
+Encerrar com a pergunta:
 
-\begin{quote}
-Por que verificar uma resposta não é a mesma coisa que encontrar uma resposta?
-\end{quote}
+\question{Por que verificar uma resposta não é a mesma coisa que encontrar uma resposta?}
 
-Ela resume a ligação entre o problema de grafos e a discussão de complexidade.
+Ela resume a ligação entre grafos e complexidade.
 
-\section{Tópicos para o handout}
+\sectiontitle{Tópicos para o handout}
 
-O handout pode ser um pouco mais completo que os slides, mas ainda curto.
-
-Sugestão de estrutura:
+O handout pode ser um pouco mais completo que os slides, mas ainda curto:
 
 \begin{itemize}
   \item definição informal;
-  \item definição mais formal;
+  \item definição formal;
   \item exemplo positivo;
   \item exemplo negativo;
   \item diferença para ciclo euleriano;
   \item problema de decisão;
   \item certificado e verificação;
   \item NP e NP-completude;
-  \item ideia de algoritmos: força bruta, backtracking, programação dinâmica e heurísticas;
+  \item força bruta, backtracking, programação dinâmica e heurísticas;
   \item aplicações e conexões.
 \end{itemize}
 
