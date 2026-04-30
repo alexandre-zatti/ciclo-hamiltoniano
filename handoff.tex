@@ -1,0 +1,383 @@
+% ============================================================
+%  HANDOUT — Ciclo Hamiltoniano
+%  Seminário de Mestrado — Alexandre & Edimar
+%
+%  TEMPLATE SUGERIDO NO OVERLEAF:
+%  "Compact Academic Handout" (pacote multicol + geometry)
+%  Busque por "academic handout two column" na galeria do Overleaf,
+%  ou use este arquivo diretamente: ele é autocontido.
+% ============================================================
+
+\documentclass[10pt,a4paper]{article}
+
+% --- Pacotes essenciais ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[top=1.8cm, bottom=1.8cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{multicol}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{graphs, graphs.standard}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[style=numeric, sorting=none, backend=biber]{biblatex}
+
+% --- Cores institucionais ---
+\definecolor{mainblue}{RGB}{0,74,128}
+\definecolor{lightgray}{RGB}{245,245,245}
+
+% --- Formatação de seções ---
+\titleformat{\section}{\normalfont\bfseries\color{mainblue}}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{6pt}{3pt}
+
+% --- Cabeçalho/rodapé ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\lhead{\textcolor{mainblue}{\textbf{Ciclo Hamiltoniano}}}
+\rhead{\textcolor{gray}{\small Mestrado em Ciência da Computação}}
+\cfoot{\thepage}
+
+% --- Ambientes matemáticos ---
+\theoremstyle{definition}
+\newtheorem{defn}{Definição}
+\newtheorem{teo}{Teorema}
+\newtheorem{exm}{Exemplo}
+
+% --- Referências ---
+\addbibresource{referencias.bib}
+% Como alternativa ao biber, use o bloco \thebibliography ao final.
+
+% ============================================================
+\begin{document}
+
+% --- Título ---
+\begin{center}
+  {\Large \textbf{\textcolor{mainblue}{Ciclo Hamiltoniano}}}\\[2pt]
+  {\small Alexandre \textbullet{} Edimar \hspace{1cm} \textit{Seminário — 15h00}}
+\end{center}
+\vspace{-4pt}
+\noindent\rule{\linewidth}{0.8pt}
+\vspace{4pt}
+
+\begin{multicols}{2}
+
+% -------------------------------------------------------
+\section{Introdução e Contextualização}
+
+A teoria dos grafos tem origem num problema clássico proposto por Leonhard Euler em 1736: as Sete Pontes de Königsberg. Euler demonstrou que não era possível percorrer todas as pontes da cidade exatamente uma vez e retornar ao ponto de partida, dando origem ao conceito de \emph{ciclo euleriano}. Quase um século depois, William Rowan Hamilton lançou, em 1857, um quebra-cabeça chamado \emph{Icosian Game}, que desafiava jogadores a encontrar um caminho ao longo das arestas de um dodecaedro que visitasse cada vértice \textbf{exatamente uma vez} e retornasse à origem~\cite{hamilton1856}. Esse problema daria nome ao conceito central deste handout.
+
+% -------------------------------------------------------
+\section{Conceitos Fundamentais}
+
+\begin{defn}[Grafo]
+  Um grafo $G = (V, E)$ é composto por um conjunto de \emph{vértices} $V$ e um conjunto de \emph{arestas} $E \subseteq \{\{u,v\} \mid u,v \in V\}$.
+\end{defn}
+
+\begin{defn}[Caminho e Ciclo]
+  Um \emph{caminho} é uma sequência de vértices distintos $v_1, v_2, \ldots, v_k$ tal que $\{v_i, v_{i+1}\} \in E$. Um \emph{ciclo} é um caminho fechado, i.e., $v_1 = v_k$.
+\end{defn}
+
+\begin{defn}[Ciclo Hamiltoniano]
+  Um \textbf{ciclo hamiltoniano} em $G$ é um ciclo que \textbf{visita cada vértice exatamente uma vez}. Um grafo que admite tal ciclo é chamado \emph{hamiltoniano}.
+\end{defn}
+
+% -------------------------------------------------------
+\section{Euleriano vs.\ Hamiltoniano}
+
+Apesar da aparente semelhança, os dois problemas têm naturezas radicalmente distintas:
+
+\vspace{4pt}
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Aspecto}     & \textbf{Euleriano}          & \textbf{Hamiltoniano}    \\
+\midrule
+Visita cada          & \textit{aresta} uma vez     & \textit{vértice} uma vez \\
+Critério eficiente   & Sim (Teorema de Euler)      & Não conhecido            \\
+Complexidade         & $\mathcal{O}(|E|)$          & NP-Completo              \\
+Verificação simples  & Grau de todos os vértices   & Nenhuma conhecida        \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{4pt}
+
+\begin{teo}[Euler, 1736]
+  Um grafo conexo possui um ciclo euleriano se e somente se \textbf{todo vértice tem grau par}.
+\end{teo}
+
+Para o ciclo hamiltoniano \textbf{não existe} um critério tão elegante: não há condição necessária e suficiente simples conhecida que determine, em tempo polinomial, se um grafo é hamiltoniano.
+
+% -------------------------------------------------------
+\section{O Problema Hamiltoniano}
+
+O \textsc{Problema do Ciclo Hamiltoniano} (\textsc{HamCycle}) é formulado como:
+
+\smallskip
+\noindent\colorbox{lightgray}{\parbox{\linewidth-2\fboxsep}{\small
+  \textbf{Entrada:} Grafo $G = (V, E)$.\\
+  \textbf{Pergunta:} Existe um ciclo hamiltoniano em $G$?
+}}
+\smallskip
+
+Existem condições \emph{suficientes} (mas não necessárias) que garantem a existência do ciclo:
+
+\begin{teo}[Dirac, 1952~\cite{dirac1952}]
+  Se $G$ é um grafo simples com $n \geq 3$ vértices e todo vértice tem grau $\delta(v) \geq n/2$, então $G$ é hamiltoniano.
+\end{teo}
+
+\begin{teo}[Ore, 1960~\cite{ore1960}]
+  Se para todo par de vértices não adjacentes $u,v$ vale $\deg(u) + \deg(v) \geq n$, então $G$ é hamiltoniano.
+\end{teo}
+
+\noindent\textit{Observação:} O Teorema de Dirac é um caso particular do de Ore. Ambos fornecem condições apenas suficientes; um grafo pode ser hamiltoniano sem satisfazê-las.
+
+\vspace{4pt}
+
+\begin{exm}[Grafo Hamiltoniano]
+O ciclo $C_n$ (grafo ciclo com $n$ vértices) é trivialmente hamiltoniano. O grafo completo $K_n$, $n \geq 3$, também o é.
+\end{exm}
+
+\begin{exm}[Grafo Não-Hamiltoniano]
+O grafo de Petersen é um famoso exemplo de grafo 3-regular que \textbf{não} possui ciclo hamiltoniano, apesar de ser altamente simétrico e conexo~\cite{petersen1898}.
+\end{exm}
+
+% -------------------------------------------------------
+\section{Complexidade Computacional}
+
+O \textsc{HamCycle} é um dos 21 problemas originalmente provados NP-Completos por Karp em 1972~\cite{karp1972}. Isso significa que:
+
+\begin{itemize}[leftmargin=*, itemsep=1pt]
+  \item \textbf{Pertence à classe NP:} dada uma solução (um ciclo candidato), é possível verificá-la em tempo polinomial — basta checar se todos os vértices aparecem exatamente uma vez e se as arestas existem.
+  \item \textbf{É NP-Difícil:} qualquer problema em NP pode ser reduzido a ele em tempo polinomial.
+  \item \textbf{Consequência prática:} não se conhece algoritmo de tempo polinomial. A força bruta é $\mathcal{O}(n!)$; a programação dinâmica (Held–Karp) reduz para $\mathcal{O}(2^n \cdot n^2)$~\cite{heldkarp1962}, ainda exponencial.
+\end{itemize}
+
+\noindent A NP-Completude do \textsc{HamCycle} é frequentemente usada como base para provar a NP-Completude de outros problemas, como o \emph{Problema do Caixeiro Viajante} (\textsc{TSP}), que é uma generalização com pesos nas arestas.
+
+% -------------------------------------------------------
+\section{Aplicações}
+
+Apesar da complexidade, o problema tem inúmeras aplicações práticas:
+\textbf{(i)} roteamento de veículos e logística (\textsc{TSP});
+\textbf{(ii)} sequenciamento de DNA em bioinformática;
+\textbf{(iii)} planejamento de circuitos em VLSI;
+\textbf{(iv)} criptografia e geração de permutações.
+
+% -------------------------------------------------------
+\section{Conclusão}
+
+O Ciclo Hamiltoniano ilustra como um problema de aparência simples pode esconder uma complexidade computacional intratável. Diferentemente do Ciclo Euleriano, caracterizável em tempo linear, determinar se um grafo é hamiltoniano exige, no pior caso, uma exploração exponencial do espaço de soluções. Seu status NP-Completo o coloca no coração da teoria da complexidade, conectando grafos, algoritmos e a grande questão em aberto da computação: $\mathbf{P} \stackrel{?}{=} \mathbf{NP}$.
+
+\end{multicols}
+
+% --- Referências ---
+\vspace{-4pt}
+\noindent\rule{\linewidth}{0.4pt}
+
+% Usando thebibliography para compatibilidade sem arquivo .bib externo
+\begin{thebibliography}{9}
+\small
+\bibitem{hamilton1856}
+  W.~R. Hamilton,
+  \textit{Letter to John T. Graves on the Icosian Calculus},
+  1856.
+
+\bibitem{dirac1952}
+  G.~A. Dirac,
+  ``Some theorems on abstract graphs,''
+  \textit{Proceedings of the London Mathematical Society}, vol.~2, pp.~69--81, 1952.
+
+\bibitem{ore1960}
+  O.~Ore,
+  ``Note on Hamiltonian circuits,''
+  \textit{The American Mathematical Monthly}, vol.~67, no.~1, p.~55, 1960.
+
+\bibitem{petersen1898}
+  J.~Petersen,
+  ``Sur le théorème de Tait,''
+  \textit{L'Intermédiaire des Mathématiciens}, vol.~5, pp.~225--227, 1898.
+
+\bibitem{karp1972}
+  R.~M. Karp,
+  ``Reducibility among combinatorial problems,''
+  in \textit{Complexity of Computer Computations}, Plenum Press, pp.~85--103, 1972.
+
+\bibitem{heldkarp1962}
+  M.~Held and R.~M. Karp,
+  ``A dynamic programming approach to sequencing problems,''
+  \textit{Journal of the Society for Industrial and Applied Mathematics}, vol.~10, no.~1, pp.~196--210, 1962.
+
+\bibitem{diestel2017}
+  R.~Diestel,
+  \textit{Graph Theory}, 5th~ed.
+  Springer, 2017.
+\end{thebibliography}
+
+
+
+\documentclass[10pt,a4paper]{article}
+
+% --- Pacotes essenciais ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[top=1.8cm, bottom=1.8cm, left=1.5cm, right=1.5cm]{geometry}
+\usepackage{multicol}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{graphs, graphs.standard}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+
+% --- Cores institucionais ---
+\definecolor{mainblue}{RGB}{0,74,128}
+\definecolor{lightgray}{RGB}{245,245,245}
+
+% --- Formatação de seções ---
+\titleformat{\section}{\normalfont\bfseries\color{mainblue}}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{8pt}{4pt}
+
+% --- Cabeçalho/rodapé ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\lhead{\textcolor{mainblue}{\textbf{Ciclo Hamiltoniano}}}
+\rhead{\textcolor{gray}{\small Teoria dos Grafos e Complexidade}}
+\cfoot{\thepage}
+
+% --- Ambientes matemáticos ---
+\theoremstyle{definition}
+\newtheorem{defn}{Definição}
+\newtheorem{teo}{Teorema}
+\newtheorem{exm}{Exemplo}
+
+\begin{document}
+
+% --- Título ---
+\begin{center}
+  {\Large \textbf{\textcolor{mainblue}{Handout: Ciclo Hamiltoniano}}}\\[2pt]
+  {\small Alexandre \& Edimar \textbullet{} Seminário de Mestrado \textbullet{} \the\day/\the\month/\the\year}
+\end{center}
+\vspace{-4pt}
+\noindent\rule{\linewidth}{0.8pt}
+\vspace{4pt}
+
+\begin{multicols}{2}
+
+% -------------------------------------------------------
+\section{Introdução: O Desafio de Hamilton}
+
+Diferente do problema das Sete Pontes de Königsberg (Euler), que foca nas \textit{passagens} (arestas), o problema Hamiltoniano foca nos \textit{lugares} (vértices). Em 1857, William Rowan Hamilton comercializou o \textit{Icosian Game}, onde o objetivo era encontrar uma rota que visitasse cada cidade (vértice) de um dodecaedro exatamente uma vez, retornando ao início. 
+
+Embora pareça uma variação trivial do problema de Euler, essa mudança de "arestas" para "vértices" transforma um problema simples de resolver (P) em um dos desafios mais profundos da computação (NP-Completo).
+
+% -------------------------------------------------------
+\section{Definições Formais}
+
+\begin{defn}[Ciclo Hamiltoniano]
+  Um \textbf{ciclo hamiltoniano} em um grafo $G = (V, E)$ é um ciclo que contém cada vértice de $V$ exatamente uma vez. Um grafo que possui tal ciclo é dito \textit{Hamiltoniano}.
+\end{defn}
+
+\begin{defn}[Caminho Hamiltoniano]
+  Um caminho que visita cada vértice exatamente uma vez, mas não necessariamente retorna ao ponto de origem.
+\end{defn}
+
+% -------------------------------------------------------
+\section{Comparação Crucial}
+
+A tabela abaixo resume por que o Ciclo Hamiltoniano é muito mais complexo que o Euleriano:
+
+\vspace{4pt}
+\noindent
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Característica} & \textbf{Euleriano} & \textbf{Hamiltoniano} \\
+\midrule
+Foco principal & Arestas & Vértices \\
+Condição necessária & Graus pares & Não há uma simples \\
+Complexidade & $\mathcal{O}(V+E)$ (P) & NP-Completo \\
+Algoritmo clássico & Fleury / Hierholzer & Backtracking / DP \\
+\bottomrule
+\end{tabular}%
+}
+\vspace{4pt}
+
+% -------------------------------------------------------
+\section{Condições de Existência}
+
+Ao contrário dos grafos eulerianos, não existe um critério "se e somente se" eficiente para grafos hamiltonianos. Temos apenas condições \textbf{suficientes}:
+
+\begin{teo}[Dirac, 1952]
+  Se $G$ é um grafo simples com $n \geq 3$ vértices e cada vértice tem grau $d(v) \geq n/2$, então $G$ é hamiltoniano.
+\end{teo}
+
+\begin{teo}[Ore, 1960]
+  Se para cada par de vértices não adjacentes $u, v$, temos $d(u) + d(v) \geq n$, então $G$ é hamiltoniano.
+\end{teo}
+
+\textit{Nota:} Essas condições são fortes. Muitos grafos são hamiltonianos sem satisfazê-las (ex: $C_n$ para $n$ grande).
+
+% -------------------------------------------------------
+\section{Complexidade e NP-Completude}
+
+O problema de decidir se um grafo possui um ciclo hamiltoniano (\textsc{Ham-Cycle}) é um dos 21 problemas NP-completos de Karp.
+
+\begin{itemize}[leftmargin=*, itemsep=0pt]
+  \item \textbf{Certificado:} Um ciclo candidato pode ser verificado em tempo polinomial.
+  \item \textbf{Redução:} É possível reduzir o \textsc{Ham-Cycle} para o Problema do Caixeiro Viajante (TSP).
+  \item \textbf{Estado da Arte:} O melhor algoritmo exato conhecido usa Programação Dinâmica (Held-Karp) com complexidade $\mathcal{O}(2^n n^2)$, o que limita o uso prático para $n$ pequeno.
+\end{itemize}
+
+% -------------------------------------------------------
+\section{Aplicações Práticas}
+
+\begin{enumerate}[leftmargin=*, label=\textbf{\arabic*.}]
+  \item \textbf{Logística:} Base para o Caixeiro Viajante, otimizando rotas de entrega.
+  \item \textbf{Bioinformática:} Reconstrução de sequências de DNA a partir de fragmentos (grafos de De Bruijn).
+  \item \textbf{Microchips:} Planejamento de trilhas em circuitos integrados para minimizar o uso de material.
+\end{enumerate}
+
+\section{Exemplos Notáveis}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Grafos Completos ($K_n$):} Sempre hamiltonianos para $n \geq 3$.
+    \item \textbf{Grafo de Petersen:} Um exemplo clássico de grafo que \textit{não} é hamiltoniano, apesar de sua regularidade.
+\end{itemize}
+
+\end{multicols}
+
+% --- Referências Atualizadas e Acessíveis ---
+\vspace{10pt}
+\noindent\rule{\linewidth}{0.4pt}
+\begin{thebibliography}{9}
+\small
+\bibitem{cormen} 
+T. H. Cormen, C. E. Leiserson, R. L. Rivest, e C. Stein. 
+\textit{Algoritmos: Teoria e Prática}. 3ª ed. Campus, 2012. (Capítulo 34: NP-Completude).
+
+\bibitem{bondy}
+J. A. Bondy e U. S. R. Murty.
+\textit{Graph Theory}. Springer, 2008. (Capítulo 18: Hamilton Cycles). Disponível online via bibliotecas acadêmicas.
+
+\bibitem{diestel}
+R. Diestel.
+\textit{Graph Theory}. 5ª ed. Springer, 2017. Versão eletrônica gratuita disponível em: \texttt{diestel-graph-theory.com}.
+
+\bibitem{wolfram}
+Wolfram MathWorld. 
+``Hamiltonian Cycle''. Acesso rápido para visualização de exemplos como o Grafo de Petersen.
+\end{thebibliography}
+
+\end{document}

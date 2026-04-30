@@ -1,0 +1,268 @@
+\documentclass[10pt, aspectratio=169]{beamer}
+
+% --- Pacotes e Tema ---
+\usetheme{Madrid}
+\usecolortheme{whale} % Tons de azul, parecidos com o handout
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+% --- Configurações da Apresentação ---
+\title[Ciclo Hamiltoniano]{Ciclo Hamiltoniano}
+\subtitle{Simples de entender, fácil de verificar, difícil de resolver.}
+\author[Alexandre \& Edimar]{Alexandre \& Edimar}
+\institute[UFFS]{
+    Análise e Projeto de Algoritmos (2026/1)\\
+    Mestrado Profissional em Computação Aplicada\\
+    Universidade Federal da Fronteira Sul (UFFS)
+}
+\date{ Análise e Projeto de Algoritmos }
+
+\begin{document}
+
+% ==========================================
+% SLIDE 1
+\begin{frame}
+    \titlepage
+\end{frame}
+
+\begin{frame}{A Pergunta Central}
+    \begin{center}
+        \Large \textit{"Existe um passeio fechado que visita todos os vértices de um grafo exatamente uma única vez?"}
+    \end{center}
+    \vspace{1em}
+    \begin{itemize}
+        \item Explicar o problema é \textbf{fácil}.
+        \item Conferir uma resposta também é \textbf{fácil}.
+        \item Mas descobrir se a resposta existe... pode ser \textbf{muito difícil}.
+    \end{itemize}
+\end{frame}
+
+% ==========================================
+% SLIDE 2
+\begin{frame}{Definições Básicas}
+    Para garantirmos que todos estamos na mesma página:
+    \vspace{1em}
+    \begin{description}[Caminho Hamiltoniano]
+        \item[Grafo:] Conjunto de vértices (pontos) conectados por arestas (linhas).
+        \item[Caminho:] Sequência de vértices conectados por arestas, sem repetir vértices.
+        \item[Ciclo:] Um caminho que "fecha" (o primeiro vértice é igual ao último).
+        \item[Caminho Hamiltoniano:] Caminho que visita \textbf{todos} os vértices do grafo exatamente uma vez.
+        \item[Ciclo Hamiltoniano:] Um ciclo que visita \textbf{todos} os vértices exatamente uma vez e retorna à origem.
+    \end{description}
+\end{frame}
+
+% ==========================================
+% SLIDE 3
+\begin{frame}{Exemplo COM Ciclo Hamiltoniano}
+    Não basta "parecer circular", a regra é visitar todos os vértices uma única vez e voltar ao começo.
+    
+    \vspace{1em}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \centering
+            \begin{tikzpicture}[scale=1.2, every node/.style={circle, draw, fill=blue!10, thick}]
+                \node (A) at (0, 2) {A};
+                \node (B) at (2, 2) {B};
+                \node (C) at (2, 0) {C};
+                \node (D) at (0, 0) {D};
+                \node (E) at (1, 1) {E};
+
+                \draw[thick] (A) -- (B) -- (C) -- (D) -- (A);
+                \draw[thick] (A) -- (E) -- (C);
+                \draw[thick, red, ->, >=stealth, dashed] (A) edge[bend left=15] (B) 
+                                                         (B) edge[bend left=15] (C) 
+                                                         (C) edge[bend left=15] (E) 
+                                                         (E) edge[bend left=15] (D) 
+                                                         (D) edge[bend left=15] (A);
+            \end{tikzpicture}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \textbf{Sequência válida:} \\
+            A $\rightarrow$ B $\rightarrow$ C $\rightarrow$ E $\rightarrow$ D $\rightarrow$ A
+            \vspace{1em}
+            
+            \textit{Todos os 5 vértices foram visitados. O caminho usa apenas arestas existentes e retorna ao ponto A.}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% SLIDE 4
+\begin{frame}{Exemplo SEM Ciclo Hamiltoniano}
+    Às vezes, a própria estrutura do grafo impede a solução.
+    
+    \vspace{1em}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \centering
+            \begin{tikzpicture}[scale=1.2, every node/.style={circle, draw, fill=red!10, thick}]
+                \node (A) at (0, 1) {A};
+                \node (B) at (2, 1) {B};
+                \node (C) at (1, 0) {C};
+                \node (D) at (1, -1.5) {D};
+
+                \draw[thick] (A) -- (B) -- (C) -- (A);
+                \draw[thick] (C) -- (D);
+            \end{tikzpicture}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \textbf{Por que é impossível?}
+            \begin{itemize}
+                \item O vértice \textbf{D} tem grau 1 (apenas uma aresta conectada a ele).
+                \item Para incluir D em um ciclo, precisaríamos entrar nele por uma aresta e sair por outra.
+                \item Como só existe uma "estrada" para D, seríamos obrigados a repetir o vértice C.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% ==========================================
+% SLIDE 5
+\begin{frame}{Hamiltoniano vs. Euleriano}
+    Nomes parecidos, problemas fundamentalmente diferentes:
+    
+    \vspace{1em}
+    \begin{table}[]
+        \centering
+        \begin{tabular}{@{}lcc@{}}
+        \toprule
+        \textbf{Característica} & \textbf{Ciclo Euleriano} & \textbf{Ciclo Hamiltoniano} \\ \midrule
+        \textbf{O que deve visitar?} & Todas as \textbf{Arestas} & Todos os \textbf{Vértices} \\
+        \textbf{Pode repetir vértice?} & Sim & \textbf{Não} \\
+        \textbf{Condição para existir} & Todos os vértices com grau par & \textbf{Nenhuma conhecida} (simples) \\
+        \textbf{Dificuldade} & Fácil (Tempo Polinomial) & \textbf{Difícil (NP-Completo)} \\ \bottomrule
+        \end{tabular}
+    \end{table}
+\end{frame}
+
+% ==========================================
+% SLIDE 6
+\begin{frame}{O Problema de Decisão}
+    Na teoria da complexidade, formulamos a questão como um \textbf{Problema de Decisão}:
+    
+    \vspace{1em}
+    \begin{block}{\textsc{HamCycle}}
+        \textbf{Entrada:} Um grafo $G = (V, E)$.\\
+        \textbf{Pergunta:} Existe um ciclo hamiltoniano em $G$? (Resposta: Sim ou Não).
+    \end{block}
+    
+    \vspace{1em}
+    \textbf{Três formas de olhar para o tema:}
+    \begin{enumerate}
+        \item \textbf{Decisão:} O ciclo existe?
+        \item \textbf{Busca:} Encontre o ciclo, se ele existir.
+        \item \textbf{Otimização:} Encontre o ciclo mais barato (Problema do Caixeiro Viajante - TSP).
+    \end{enumerate}
+\end{frame}
+
+% ==========================================
+% SLIDE 7
+\begin{frame}{Verificar é Fácil (Classe NP)}
+    Se alguém disser "Eu achei um ciclo!", é muito rápido checar se a pessoa está falando a verdade.
+    
+    \vspace{1em}
+    Dada uma \textbf{sequência candidata} (Certificado): $v_1, v_2, \ldots, v_n, v_1$
+    
+    \vspace{1em}
+    \textbf{Passos da Verificação:}
+    \begin{itemize}
+        \item O tamanho da sequência é igual ao número de vértices + 1?
+        \item Não há vértices repetidos (exceto o primeiro e o último)?
+        \item Existe uma aresta ligando cada $v_i$ ao próximo $v_{i+1}$ no grafo?
+    \end{itemize}
+    
+    \vspace{1em}
+    \textit{Conclusão:} Como a verificação é feita rapidamente (em tempo polinomial), o problema pertence à \textbf{Classe NP}.
+\end{frame}
+
+% ==========================================
+% SLIDE 8
+\begin{frame}{Encontrar é Difícil}
+    Por que não testar todas as possibilidades? \textbf{Explosão Combinatória.}
+    
+    \vspace{1em}
+    \begin{itemize}
+        \item \textbf{Força Bruta:} Gerar todas as permutações dos vértices custa aproximadamente $\mathcal{O}(n!)$.
+        \item Para 20 vértices, $20! \approx 2.4 \times 10^{18}$ operações.
+        \item \textbf{Estado da Arte:} O algoritmo exato de Held-Karp (Programação Dinâmica) resolve em $\mathcal{O}(2^n \cdot n^2)$.
+        \item Melhorou, mas ainda é \textbf{exponencial}. Cresce rápido demais para grafos grandes.
+    \end{itemize}
+\end{frame}
+
+% ==========================================
+% SLIDE 9
+\begin{frame}{NP-Completo (Sem Pesar)}
+    O \textsc{HamCycle} é um exemplo clássico de problema \textbf{NP-Completo}.
+    
+    \vspace{1em}
+    \begin{itemize}
+        \item \textbf{O que isso significa na prática?}
+        \begin{itemize}
+            \item Ele é tão difícil quanto qualquer outro problema da classe NP.
+            \item Representa uma dificuldade algorítmica central.
+        \end{itemize}
+        \vspace{1em}
+        \item \textbf{A grande implicação:} Se alguém descobrir um algoritmo rápido (polinomial) para encontrar o Ciclo Hamiltoniano para \textit{qualquer} grafo, então resolveremos todos os problemas NP-Completos no mesmo tempo. 
+        \item Isso provaria que $\mathbf{P} = \mathbf{NP}$ (o prêmio de 1 milhão de dólares do Instituto Clay).
+    \end{itemize}
+\end{frame}
+
+% ==========================================
+% SLIDE 10
+\begin{frame}{Quando dá para resolver?}
+    "Difícil no caso geral" não significa "impossível sempre".
+    
+    \vspace{1em}
+    \textbf{Condições suficientes (Garantias Teóricas):}
+    \begin{itemize}
+        \item \textit{Teorema de Dirac:} Se todo vértice estiver conectado a pelo menos metade dos outros vértices do grafo, o ciclo existe com certeza.
+    \end{itemize}
+    
+    \vspace{1em}
+    \textbf{Na Prática (Engenharia Algorítmica):}
+    \begin{itemize}
+        \item \textbf{Busca com Poda (Backtracking):} Descartar caminhos que não têm futuro.
+        \item \textbf{Heurísticas:} Encontram ciclos "bons o suficiente" rapidamente, mas sem garantia matemática.
+        \item \textbf{SAT Solvers / ILP:} Traduzir o grafo em equações e usar solucionadores industriais.
+    \end{itemize}
+\end{frame}
+
+% ==========================================
+% SLIDE 11
+\begin{frame}{Aplicações e Conexões}
+    Onde esse problema aparece na vida real?
+    
+    \vspace{1em}
+    \begin{itemize}
+        \item \textbf{Logística e Roteamento:} Base direta para o Problema do Caixeiro Viajante (TSP) -- planejar entregas visitando locais sem repetição.
+        \item \textbf{Bioinformática:} Reconstrução de DNA. Fragmentos são mapeados em grafos para encontrar a sequência original.
+        \item \textbf{Design de Microchips (VLSI):} Desenhar as trilhas elétricas no menor espaço possível, passando por todos os componentes sem cruzar.
+        \item \textbf{Matemática Recreativa:} O problema do "Passeio do Cavalo" no xadrez é, na verdade, um ciclo hamiltoniano no grafo do tabuleiro.
+    \end{itemize}
+\end{frame}
+
+% ==========================================
+% SLIDE 12
+\begin{frame}{Fechamento}
+    \begin{center}
+        \Large \textbf{Simples de explicar. Fácil de verificar. Difícil de resolver.}
+    \end{center}
+    
+    \vspace{2em}
+    \begin{block}{Para reflexão}
+        \textit{"Por que checar uma resposta pronta (certificar) é estruturalmente tão mais fácil do que encontrar a resposta do zero?"}
+    \end{block}
+    
+    \vspace{2em}
+    \begin{center}
+        \textbf{Obrigado!} \\
+        Perguntas?
+    \end{center}
+\end{frame}
+
+\end{document}
