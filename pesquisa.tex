@@ -1,0 +1,361 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.8cm, right=2.8cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{parskip}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xcolor}
+
+% --- Ambientes ---
+\theoremstyle{definition}
+\newtheorem{defn}{Definição}[section]
+\newtheorem{teo}{Teorema}[section]
+\newtheorem{prop}[teo]{Proposição}
+\newtheorem{lema}[teo]{Lema}
+\newtheorem{exm}{Exemplo}[section]
+
+% --- Comentários da dupla ---
+% Macro discreta para registrar observações de estudo no corpo do texto.
+\definecolor{notagray}{RGB}{90,90,90}
+\newcommand{\nota}[1]{%
+  \par\medskip
+  {\small\color{notagray}\textit{Nota de estudo.} #1}\par\medskip
+}
+
+\title{\textbf{Ciclo Hamiltoniano}\\
+       \large Notas de pesquisa}
+\date{}
+
+\begin{document}
+\maketitle
+
+% ============================================================
+\section*{Sobre este documento}
+\addcontentsline{toc}{section}{Sobre este documento}
+
+Este texto reúne o material que a dupla estudou para preparar o seminário sobre Ciclo Hamiltoniano. 
+\nota{Ele é mais longo e mais técnico que o handout, ou seja, o handout se originou deste conteúdo.}
+
+\tableofcontents
+
+% ============================================================
+\section{Origem histórica}
+
+A teoria dos grafos é tradicionalmente datada do trabalho de Leonhard Euler sobre as Sete Pontes de Königsberg, em 1736. Euler perguntava se era possível percorrer cada uma das sete pontes da cidade exatamente uma vez e voltar ao ponto de partida; ele mostrou que não, e identificou um critério geral baseado na paridade dos graus dos vértices. Esse critério é o que hoje chamamos de \emph{ciclo euleriano}, e a sua simplicidade é uma das razões pelas quais o ciclo hamiltoniano costuma ser apresentado em contraste a ele.
+
+Em 1857, William Rowan Hamilton --- já bem conhecido pela sua descoberta dos quatérnios em 1843 --- propôs um quebra-cabeça batizado de \emph{Icosian Game}~\citep{hamilton1856}. O jogo, comercializado em duas versões (um tabuleiro plano e um dodecaedro de madeira), pedia ao jogador uma rota ao longo das arestas do dodecaedro que visitasse cada um dos vinte vértices exatamente uma vez, voltando ao início. O nome ``icosian'' vem do sistema algébrico não-comutativo que Hamilton desenvolveu para tratar dessas rotas.
+
+A diferença entre os dois problemas pode parecer cosmética: Euler quer percorrer todas as \emph{arestas} uma vez; Hamilton quer percorrer todos os \emph{vértices} uma vez. Mas o impacto algorítmico é enorme. Para Euler, há um critério necessário e suficiente computável em tempo linear; para Hamilton, mais de 165 anos depois, ainda não conhecemos critério eficiente algum no caso geral.
+
+\nota{Demoramos a entender por que a troca de ``arestas'' por ``vértices'' faz tanta diferença. A intuição que ficou: contar arestas em cada vértice (paridade) é uma condição \emph{local}; visitar cada vértice exatamente uma vez é uma condição \emph{global}, que depende da estrutura inteira do grafo. Condições locais costumam ter algoritmos rápidos; condições globais raramente têm.}
+
+O problema só receberia tratamento moderno --- como um problema de complexidade computacional --- a partir de 1971--72, com Stephen Cook e, sobretudo, Richard Karp~\citep{karp1972}, que incluiu a versão de decisão do ciclo hamiltoniano na sua célebre lista dos 21 problemas NP-completos. É a partir desse momento que ele deixa de ser uma curiosidade combinatória e passa a ser visto como um exemplo paradigmático de dificuldade computacional.
+
+% ============================================================
+\section{Definições e notação}
+
+\begin{defn}[Grafo]
+Um \emph{grafo simples não-direcionado} é um par $G = (V, E)$, em que $V$ é um conjunto finito de \emph{vértices} e $E \subseteq \binom{V}{2}$ é um conjunto de \emph{arestas}. Salvo menção em contrário, denotamos $n = |V|$ e $m = |E|$.
+\end{defn}
+
+\begin{defn}[Grau e vizinhança]
+A \emph{vizinhança} de um vértice $v \in V$ é o conjunto $N(v) = \{u \in V : \{u,v\} \in E\}$. O \emph{grau} de $v$ é $\deg(v) = |N(v)|$. Definimos $\delta(G) = \min_{v \in V} \deg(v)$ e $\Delta(G) = \max_{v \in V} \deg(v)$.
+\end{defn}
+
+\begin{defn}[Caminho, ciclo]
+Um \emph{caminho} em $G$ é uma sequência $v_1, v_2, \ldots, v_k$ de vértices distintos tal que $\{v_i, v_{i+1}\} \in E$ para todo $i \in \{1, \ldots, k-1\}$. O caminho tem \emph{comprimento} $k - 1$ (medido em arestas). Um \emph{ciclo} é um caminho fechado: $v_1 = v_k$ e $k \geq 4$ (com $v_2, \ldots, v_{k-1}$ distintos).
+\end{defn}
+
+\begin{defn}[Ciclo e caminho hamiltoniano]
+Um \emph{ciclo hamiltoniano} em $G$ é um ciclo que contém todos os vértices de $V$. Um \emph{caminho hamiltoniano} é um caminho que contém todos os vértices de $V$ mas não fecha em ciclo. Um grafo que admite ciclo hamiltoniano é dito \emph{hamiltoniano}.
+\end{defn}
+
+\nota{O caminho hamiltoniano é um problema relacionado, também NP-completo, mas é importante notar que existir um caminho hamiltoniano não implica existir um ciclo hamiltoniano. O contrário também não vale em geral: um grafo pode ter caminhos que não se fecham. No seminário decidimos não tratar formalmente o caminho hamiltoniano, embora ele apareça brevemente nos slides.}
+
+% ============================================================
+\section{Ciclo euleriano: o contraste}
+
+Antes de atacar o ciclo hamiltoniano, vale formalizar o ciclo euleriano. Ele serve de referência: é o tipo de teorema que \emph{gostaríamos} de ter para Hamilton e não temos.
+
+\begin{defn}[Ciclo euleriano]
+Um \emph{ciclo euleriano} em $G$ é um circuito fechado que percorre cada aresta de $E$ exatamente uma vez. Vértices podem ser repetidos.
+\end{defn}
+
+\begin{teo}[Euler, 1736]
+Um grafo conexo $G$ possui ciclo euleriano se, e somente se, todo vértice de $G$ tem grau par.
+\end{teo}
+
+\begin{proof}[Esboço da demonstração]
+\textbf{Necessidade.} Em um ciclo euleriano, cada vez que entramos em um vértice $v$, saímos por uma aresta diferente. Logo, as arestas incidentes a $v$ podem ser pareadas (entrada/saída), e o grau é par.
+
+\textbf{Suficiência.} Argumento construtivo (algoritmo de Hierholzer). Comece em qualquer vértice $v_0$ e siga arestas ainda não usadas até voltar a $v_0$ --- é sempre possível, pois a paridade dos graus garante que nunca ficamos presos em outro vértice. Isso fornece um circuito $C$. Se $C$ não cobre todas as arestas, existe um vértice $u$ em $C$ ainda incidente a arestas não usadas; partindo de $u$, repita o procedimento e enxerte o novo circuito em $C$. O processo termina em $\mathcal{O}(|V| + |E|)$.
+\end{proof}
+
+O ponto importante é que o teorema de Euler é uma \emph{caracterização local}: para decidir se há ciclo euleriano, basta inspecionar cada vértice e checar a paridade do grau. Algoritmicamente, é trivial.
+
+\nota{A pergunta natural --- e que demoramos a saber responder --- foi: por que não temos algo análogo para Hamilton? A resposta curta é que ninguém sabe, e que se alguém soubesse provavelmente teria provado $\mathbf{P} = \mathbf{NP}$ no processo. Há razões técnicas mais finas (relacionadas à dificuldade de provar limites inferiores), mas o ponto é que a pergunta está em aberto desde os anos 1970.}
+
+% ============================================================
+\section{O problema hamiltoniano: variantes}
+
+O termo ``problema do ciclo hamiltoniano'' cobre, na verdade, várias formulações. Para discussões de complexidade, é útil separá-las.
+
+\paragraph{Decisão (\textsc{HamCycle}).} Dado $G$, existe ciclo hamiltoniano em $G$? Saída: ``sim'' ou ``não''. Esta é a versão estudada na teoria de NP-completude.
+
+\paragraph{Busca.} Dado $G$, encontrar um ciclo hamiltoniano caso exista. É computacionalmente equivalente à versão de decisão (no sentido da redução de Cook): se temos um algoritmo polinomial para decisão, podemos construir um para busca em tempo polinomial, fixando arestas uma a uma.
+
+\paragraph{Otimização (TSP).} Dado um grafo completo $K_n$ com pesos $w : E \to \mathbb{R}_{\geq 0}$ nas arestas, encontrar o ciclo hamiltoniano de peso total mínimo. Esta é a versão clássica do \emph{Problema do Caixeiro Viajante}~\citep{cormen2012}.
+
+A versão de decisão do TSP é também NP-completa, e \textsc{HamCycle} se reduz a ela trivialmente: dado $G = (V, E)$, construa um $K_n$ com pesos $w(e) = 0$ se $e \in E$ e $w(e) = 1$ caso contrário; $G$ tem ciclo hamiltoniano se, e somente se, o TSP tem solução de custo zero.
+
+\nota{Essa redução de \textsc{HamCycle} para TSP é elegante e explica por que o TSP é importante para a teoria, mesmo quando estamos interessados só em existência de ciclos. Ela aparece com pequenas variações em Cormen e em Dasgupta--Papadimitriou--Vazirani.}
+
+% ============================================================
+\section{Condições suficientes de existência}
+
+A pergunta natural --- ``quais grafos são hamiltonianos?'' --- não tem resposta fechada eficiente. O que se conseguiu desde a década de 1950 foi uma série de \emph{condições suficientes}: hipóteses que garantem hamiltonicidade, mas que muitos grafos hamiltonianos não satisfazem. Apresentamos as três principais.
+
+\subsection{Teorema de Dirac (1952)}
+
+\begin{teo}[Dirac~\citep{dirac1952}]
+Seja $G$ um grafo simples com $n \geq 3$ vértices. Se $\delta(G) \geq n/2$, então $G$ é hamiltoniano.
+\end{teo}
+
+\begin{proof}[Esboço]
+A demonstração é por contradição via caminho maximal. Suponha que $G$ satisfaça a hipótese mas não seja hamiltoniano.
+
+\textbf{Conexidade.} Primeiro, $G$ é conexo: se houvesse duas componentes, a menor teria no máximo $n/2$ vértices, e cada vértice dela teria grau $\leq n/2 - 1 < n/2$, contradição.
+
+\textbf{Caminho maximal.} Tome um caminho $P = v_1 v_2 \cdots v_k$ de comprimento máximo. Por maximalidade, todos os vizinhos de $v_1$ e de $v_k$ estão dentro de $P$.
+
+\textbf{Construção do ciclo.} Como $\deg(v_1), \deg(v_k) \geq n/2$, um argumento de contagem (princípio da casa dos pombos) mostra que existe $i$ tal que $\{v_1, v_{i+1}\} \in E$ e $\{v_i, v_k\} \in E$. Isso permite construir um ciclo $C$ contendo todos os vértices de $P$: percorra $v_1 \to v_i$, depois pule para $v_k$, retorne $v_k \to v_{i+1}$ e feche em $v_1$.
+
+\textbf{Contradição.} Se $k < n$, existe um vértice $u \notin P$. Pela conexidade, $u$ tem um vizinho em $C$, o que permite estender $P$ --- contradizendo a maximalidade. Logo $k = n$ e $C$ é um ciclo hamiltoniano.
+\end{proof}
+
+\subsection{Teorema de Ore (1960)}
+
+\begin{teo}[Ore~\citep{ore1960}]
+Seja $G$ um grafo simples com $n \geq 3$ vértices. Se, para todo par $u, v \in V$ com $u \neq v$ e $\{u, v\} \notin E$, vale $\deg(u) + \deg(v) \geq n$, então $G$ é hamiltoniano.
+\end{teo}
+
+A demonstração segue a mesma estratégia do teorema de Dirac, com o contraste de que a condição é sobre \emph{somas} de graus de pares não-adjacentes, e não sobre o grau mínimo. Note que se $\delta(G) \geq n/2$, então para qualquer par não-adjacente $u, v$ temos $\deg(u) + \deg(v) \geq n/2 + n/2 = n$. Portanto, \emph{Dirac é caso particular de Ore}.
+
+\subsection{Fechamento de Bondy--Chvátal}
+
+Uma generalização posterior, devida a Bondy e Chvátal (1976), captura todos os teoremas anteriores e oferece uma reformulação operacional muito útil:
+
+\begin{teo}[Bondy--Chvátal]
+Seja $G = (V, E)$. Defina o \emph{fechamento} $\mathrm{cl}(G)$ como o resultado de adicionar repetidamente, a $G$, toda aresta $\{u, v\}$ entre vértices não adjacentes tais que $\deg(u) + \deg(v) \geq n$, até que nenhum par desse tipo reste. Então $G$ é hamiltoniano se, e somente se, $\mathrm{cl}(G)$ é hamiltoniano. Em particular, se $\mathrm{cl}(G) = K_n$, então $G$ é hamiltoniano.
+\end{teo}
+
+A reformulação útil é a última: para verificar hamiltonicidade num grafo denso, basta calcular o fechamento e ver se ele resulta no grafo completo. O teorema de Ore é o caso particular em que isso já vale na primeira iteração, e o de Dirac é o caso particular do Ore.
+
+\nota{O fechamento de Bondy--Chvátal não está nas referências básicas da disciplina, mas é cobertura padrão em livros de teoria dos grafos como Bondy \& Murty (capítulo 18). Vale a leitura para quem quiser ir além.}
+
+\subsection{Limitação geral}
+
+Todas as condições acima são apenas suficientes. Existem grafos hamiltonianos arbitrariamente esparsos: o ciclo $C_n$ tem $\delta = 2$ para qualquer $n$, e é hamiltoniano por construção. Logo nenhuma condição baseada apenas em densidade pode ser necessária.
+
+% ============================================================
+\section{Condições necessárias e impedimentos estruturais}
+
+Embora não haja caracterização completa, há vários \emph{impedimentos} estruturais que excluem hamiltonicidade. Reunimos aqui os principais.
+
+\begin{prop}[Vértices de grau 1]
+Se $G$ contém um vértice $v$ com $\deg(v) \leq 1$, então $G$ não é hamiltoniano.
+\end{prop}
+
+\begin{proof}
+Em um ciclo hamiltoniano, cada vértice é visitado exatamente uma vez, com exatamente uma aresta de chegada e uma de saída. Portanto cada vértice tem grau pelo menos 2 nas arestas usadas pelo ciclo, e portanto no grafo subjacente.
+\end{proof}
+
+\begin{prop}[Vértices de corte]
+Se $G$ tem um vértice de corte (cuja remoção desconecta $G$), então $G$ não é hamiltoniano.
+\end{prop}
+
+\begin{proof}
+Um ciclo hamiltoniano induz um subgrafo gerador 2-aresta-conexo (e mesmo 2-vértice-conexo, exceto em $n = 2$). A presença de um vértice de corte em $G$ impede tal estrutura.
+\end{proof}
+
+\begin{prop}[Bipartição desbalanceada]
+Se $G$ é bipartido com partições $A$ e $B$, e $|A| \neq |B|$, então $G$ não é hamiltoniano.
+\end{prop}
+
+\begin{proof}
+Em um grafo bipartido, qualquer ciclo alterna entre $A$ e $B$, e portanto tem comprimento par. Um ciclo hamiltoniano teria $n = |A| + |B|$ arestas, alternando entre os lados, o que exige $|A| = |B|$.
+\end{proof}
+
+\nota{Essa última observação é especialmente útil para descartar rapidamente certos exemplos. Se alguém perguntar ``$K_{3,4}$ é hamiltoniano?'', a resposta é ``não'' por simples paridade de partições, sem precisar olhar para o grafo de perto.}
+
+% ============================================================
+\section{Casos polinomiais conhecidos}
+
+A NP-completude vale para o caso geral, mas existem famílias de grafos para as quais o problema é polinomialmente solúvel. Mencionamos as duas mais conhecidas:
+
+\paragraph{Grafos planares 4-conexos.} Tutte (1956) demonstrou que todo grafo planar 4-conexo possui ciclo hamiltoniano, e a demonstração é construtiva: existe algoritmo polinomial para encontrá-lo. Esse resultado responde a uma conjectura de Tait sobre o problema das quatro cores.
+
+\paragraph{Grafos com estrutura especial.} Cografos, certos grafos de intervalo e algumas classes de grafos perfeitos admitem algoritmos polinomiais para hamiltonicidade. A literatura nesta área é vasta e foge ao escopo deste seminário.
+
+\nota{Achamos importante registrar que ``NP-completo no caso geral'' não significa ``insolúvel sempre''. Na prática, muitos problemas NP-completos têm casos especiais polinomiais, e identificar a classe certa do grafo de entrada pode ser a diferença entre uma solução em segundos e uma em horas.}
+
+% ============================================================
+\section{Complexidade computacional}
+
+\subsection{NP em uma frase}
+
+A classe \textbf{NP} é, informalmente, o conjunto dos problemas de decisão para os quais uma resposta ``sim'' admite \emph{certificado verificável em tempo polinomial}~\citep{sipser2005}. Para \textsc{HamCycle}:
+
+\begin{prop}
+\textsc{HamCycle} pertence a \textbf{NP}.
+\end{prop}
+
+\begin{proof}
+Dado $G = (V, E)$ e uma sequência candidata $\sigma = (v_1, v_2, \ldots, v_n)$, basta verificar três condições:
+\begin{enumerate}[label=(\roman*),leftmargin=*]
+  \item $\sigma$ é uma permutação de $V$ (todos os vértices aparecem uma vez);
+  \item para cada $i \in \{1, \ldots, n-1\}$, $\{v_i, v_{i+1}\} \in E$;
+  \item $\{v_n, v_1\} \in E$.
+\end{enumerate}
+Cada checagem é feita em tempo $\mathcal{O}(|V| + |E|)$ com estruturas de dados adequadas (lista ou matriz de adjacência mais um vetor de marcação).
+\end{proof}
+
+\subsection{NP-completude}
+
+\begin{teo}[Karp~\citep{karp1972}]
+\textsc{HamCycle} é NP-completo.
+\end{teo}
+
+A demonstração consiste em reduzir um problema sabidamente NP-completo a \textsc{HamCycle}. Karp exibiu uma cadeia de reduções partindo de \textsc{Sat}; livros didáticos costumam apresentar a redução por meio de \textsc{VertexCover} ou diretamente de 3-\textsc{Sat}, usando ``gadgets'' que codificam variáveis e cláusulas em subgrafos~\citep{cormen2012,sipser2005,dasgupta2009}. A construção é tecnicamente envolvente; o ponto importante para o seminário é a existência da redução, não os detalhes dela.
+
+\nota{Tentamos seguir a redução em CLRS (capítulo 34). É factível, mas custa atenção: cada gadget tem várias arestas com função específica, e a verificação de que a redução é correta exige um argumento bidirecional cuidadoso. Decidimos manter o handout no nível conceitual e apenas mencionar a existência da redução.}
+
+\subsection{O peso de ``NP-completo''}
+
+Que \textsc{HamCycle} seja NP-completo significa duas coisas. Primeiro, \emph{todo} problema em \textbf{NP} se reduz a \textsc{HamCycle} em tempo polinomial. Segundo, e como consequência, um eventual algoritmo polinomial para \textsc{HamCycle} implicaria $\mathbf{P} = \mathbf{NP}$, resolvendo afirmativamente uma das questões em aberto mais importantes da matemática e da computação. Como ninguém encontrou tal algoritmo em mais de cinquenta anos, há boas razões para acreditar (mas nenhuma prova) que ele não exista.
+
+% ============================================================
+\section{Algoritmos exatos}
+
+\subsection{Força bruta}
+
+A abordagem mais direta é enumerar todas as permutações dos vértices e verificar cada uma. O número de candidatos a inspecionar é $(n-1)!/2$ (fixando o vértice inicial e considerando que cada ciclo pode ser percorrido em dois sentidos), portanto o custo é $\Theta(n!)$. Para $n = 20$, isso já é da ordem de $10^{18}$ permutações --- inviável.
+
+\subsection{Backtracking com poda}
+
+Uma melhoria padrão: em vez de gerar permutações completas e testar, construímos a sequência incrementalmente, abandonando ramos assim que detectamos que não há como completar o ciclo (por exemplo, o vértice escolhido não é adjacente ao anterior, ou já foi visitado). No pior caso, o custo permanece exponencial; na prática, a poda reduz drasticamente o tempo médio para muitas instâncias~\citep{knuth2011}.
+
+\subsection{Held--Karp (programação dinâmica)}
+
+O algoritmo de Held--Karp~\citep{heldkarp1962}, formulado originalmente para o TSP, fornece a melhor complexidade exata conhecida em termos de tempo no pior caso. Aplicado ao problema do ciclo hamiltoniano, a ideia é a seguinte.
+
+Fixe um vértice de origem, digamos $v_1$. Para cada subconjunto $S \subseteq V$ contendo $v_1$ e cada vértice $j \in S \setminus \{v_1\}$, defina:
+\[
+  C(S, j) = \begin{cases}
+    \text{1, se existe caminho de } v_1 \text{ a } j \text{ que visita exatamente os vértices de } S; \\
+    \text{0, caso contrário.}
+  \end{cases}
+\]
+
+A recorrência é direta:
+\[
+  C(S, j) = \bigvee_{\substack{i \in S \setminus \{v_1, j\} \\ \{i, j\} \in E}} C(S \setminus \{j\}, i),
+\]
+com caso-base $C(\{v_1, j\}, j) = 1$ se $\{v_1, j\} \in E$, e $0$ caso contrário.
+
+A resposta para a versão de decisão é:
+\[
+  \exists \text{ ciclo hamiltoniano} \iff \bigvee_{\substack{j \neq v_1 \\ \{j, v_1\} \in E}} C(V, j) = 1.
+\]
+
+A versão para TSP é análoga, trocando o ``ou'' lógico por mínimo de soma com pesos de aresta. A análise é simples: há $\Theta(2^n \cdot n)$ pares $(S, j)$, e cada um exige $\mathcal{O}(n)$ trabalho para checar todos os predecessores possíveis. O tempo total é $\Theta(2^n n^2)$, e o consumo de memória é $\Theta(2^n n)$.
+
+\nota{O número $2^n n^2$ ainda é exponencial, mas a diferença para $n!$ é gigantesca. Para $n = 25$ ($n! \approx 1{,}5 \cdot 10^{25}$, $2^n n^2 \approx 2 \cdot 10^{10}$), Held--Karp é mais de quatorze ordens de grandeza mais rápido. Mesmo assim, para $n = 60$ já estamos além do que cabe em memória. Held--Karp é o algoritmo prático até algumas dezenas de vértices; depois disso, é outro território.}
+
+\subsection{Comparação numérica}
+
+A tabela abaixo dá uma noção de escala do crescimento das duas abordagens.
+
+\begin{center}
+\begin{tabular}{rrr}
+\toprule
+$n$ & $n!$               & $2^n n^2$         \\
+\midrule
+10  & $3{,}6 \cdot 10^6$ & $1{,}0 \cdot 10^5$ \\
+20  & $2{,}4 \cdot 10^{18}$ & $4{,}2 \cdot 10^8$ \\
+30  & $2{,}7 \cdot 10^{32}$ & $9{,}7 \cdot 10^{11}$ \\
+40  & $8{,}2 \cdot 10^{47}$ & $1{,}8 \cdot 10^{15}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Mesmo Held--Karp não escala para problemas de larga escala: o ponto importante é que, em complexidade computacional, ``melhor que força bruta'' não significa ``rápido''.
+
+% ============================================================
+\section{Algoritmos práticos para instâncias maiores}
+
+Quando os algoritmos exatos não cabem no tempo ou memória disponíveis, recorre-se a três grandes famílias de técnicas.
+
+\paragraph{Solvers SAT.} Codifica-se a existência de ciclo hamiltoniano como uma fórmula booleana em CNF: variáveis $x_{v,i}$ indicando ``o vértice $v$ ocupa a posição $i$ no ciclo'', restrições de unicidade (cada vértice em uma posição, cada posição com um vértice) e restrições de adjacência. Solvers modernos lidam bem com instâncias de centenas de vértices.
+
+\paragraph{Programação linear inteira (ILP).} A formulação clássica de Dantzig--Fulkerson--Johnson usa variáveis binárias $x_e$ por aresta, restrições de grau ($\sum_{e \ni v} x_e = 2$) e restrições de eliminação de subciclos. Solvers como Gurobi ou CPLEX resolvem instâncias surpreendentemente grandes, desde que a formulação seja bem feita.
+
+\paragraph{Heurísticas e meta-heurísticas.} Não garantem otimalidade, mas frequentemente encontram boas soluções rapidamente. Os mais comuns são:
+\begin{itemize}[leftmargin=*]
+  \item busca local (2-opt, 3-opt, Lin--Kernighan), aplicáveis sobretudo a TSP métrico;
+  \item algoritmos genéticos com representação por permutação;
+  \item colônia de formigas (ACO);
+  \item \emph{simulated annealing}.
+\end{itemize}
+
+\nota{Para o seminário, decidimos não entrar em detalhes dessas técnicas: cada uma delas merece uma aula inteira, e o foco da nossa apresentação é a \emph{teoria} da dificuldade, não a engenharia de soluções aproximadas. Se a turma perguntar, mencionamos que existem e indicamos leitura.}
+
+% ============================================================
+\section{Aplicações e conexões}
+
+\subsection{Roteamento e logística}
+
+A versão de otimização (TSP) modela diretamente problemas de entrega, planejamento de rotas e escala de tarefas. O TSP métrico (em que os pesos satisfazem a desigualdade triangular) admite uma 1{,}5-aproximação clássica, devida a Christofides (1976), que combina árvore geradora mínima e emparelhamento perfeito. Para o TSP geral, sem hipótese métrica, não existe algoritmo de aproximação com fator constante a menos que $\mathbf{P} = \mathbf{NP}$.
+
+\subsection{Bioinformática}
+
+O problema da reconstrução de uma sequência de DNA a partir de fragmentos sobrepostos pode ser modelado como busca de uma \emph{shortest superstring}, e sua formulação clássica em grafos é equivalente a encontrar caminho hamiltoniano em um grafo de sobreposições. A migração para grafos de De Bruijn na década de 1990 foi motivada exatamente por isso: o grafo de De Bruijn troca o problema hamiltoniano por um problema euleriano, que é polinomial.
+
+\nota{Esse é um dos exemplos mais elegantes de ``escolher o modelo certo''. Em vez de atacar um problema NP-difícil, os bioinformatas reformularam o problema biológico em uma estrutura combinatória onde o problema de interesse fica em P. A diferença algorítmica corresponde, na prática, à diferença entre minutos e milênios.}
+
+\subsection{Outras aplicações}
+
+Brevemente: planejamento de trilhas em circuitos VLSI (ordenação de componentes para minimizar comprimento de fio), geração de permutações em criptografia, e exemplos clássicos de busca como o passeio do cavalo em um tabuleiro de xadrez.
+
+% ============================================================
+\section{P versus NP, em panorama}
+
+A conjectura $\mathbf{P} \neq \mathbf{NP}$ está em aberto desde sua formulação por Cook (1971) e Levin (1973). É uma das sete questões do Clay Mathematics Institute, e sua resposta afirmativa ou negativa teria consequências profundas em áreas que vão de criptografia a otimização e a biologia computacional.
+
+A NP-completude de \textsc{HamCycle} insere o nosso problema diretamente nessa conversa: existem milhares de problemas naturais NP-completos, todos polinomialmente equivalentes entre si. Resolver eficientemente qualquer um deles resolve todos. A consensual ausência de tal solução, somada à evidência matemática indireta (limites inferiores em modelos restritos, dificuldade de relativizar a separação, barreiras de provas naturais), é o que nos leva a tratar a NP-completude como sinônimo prático de ``intratável no caso geral''.
+
+% ============================================================
+\section{Notas finais da dupla}
+
+Depois de varrer essa literatura, três coisas ficaram claras para nós e queríamos registrar:
+
+Primeiro, a distância entre o enunciado do problema e a sua dificuldade computacional é um dos atrativos do tema. Qualquer pessoa entende a pergunta em poucos segundos; a sua intratabilidade levou décadas para ser formalizada e ainda gera pesquisa ativa.
+
+Segundo, ``NP-completo'' não é o fim da história. Existem condições suficientes que cobrem casos importantes (Dirac, Ore, fechamento de Bondy--Chvátal), classes de grafos para as quais o problema é polinomial (planares 4-conexos, por exemplo), algoritmos exatos sub-fatoriais (Held--Karp), e técnicas práticas que resolvem instâncias reais bem maiores do que a teoria do pior caso sugeriria.
+
+Terceiro, o ciclo hamiltoniano é um excelente veículo pedagógico para introduzir a noção de ``verificar versus encontrar''. É essa assimetria que define a classe \textbf{NP} e que motiva, em última instância, toda a teoria da NP-completude. Esse é o fio condutor que decidimos manter no handout e nos slides.
+
+\nota{Pontos que ficaram pendentes na nossa pesquisa: a relação entre hamiltonicidade e o teorema de Tutte para grafos planares; a teoria de hamiltonicidade em grafos direcionados (mais complexa); resultados modernos em algoritmos parametrizados por largura de árvore. Se o seminário motivar perguntas nessas direções, registramos como possíveis trabalhos futuros.}
+
+% ============================================================
+\section*{Referências}
+\renewcommand{\bibsection}{}
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}
